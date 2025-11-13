@@ -15,6 +15,8 @@ uv sync
 
 Then install Chromedriver: https://developer.chrome.com/docs/chromedriver/get-started
 
+The whole parsing of the LinkedIn webpage is based on Chromedriver.
+
 ## Environment
 
 Make sure you have all of these variables in your .env file:
