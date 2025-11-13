@@ -58,3 +58,29 @@ python ./src/linkedin_mcp/client/client_stdio.py
 ```
 uv run ./src/linkedin_mcp/server/server.py
 ```
+
+## Integration with Gemini CLI
+
+This is a modified `.settings.json` of the Gemini CLI with which you can use for connecting and using the MCP:
+
+```
+{
+  "general": {
+    "preferredEditor": "vscode"
+  },
+  "security": {
+    "auth": {
+      "selectedType": "gemini-api-key"
+    }
+  },
+  "ui": {
+    "theme": "Default"
+  },
+  "mcpServers": {
+    "linkedin-scraper": {
+      "httpUrl": "http://0.0.0.0:8050/mcp/",
+      "transport": "streamable-http"
+    }
+  }
+}
+```
