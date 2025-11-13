@@ -1,6 +1,8 @@
 # LinkedIn MCP
 
-This is a simple implementation of an MCP LinkedIn server using a Selenium Chrome based scraper in the background.
+This is a simple implementation of an MCP LinkedIn server using a Selenium and Chromedriver based scraper in the background.
+
+At the moment it only support profile scraping and profile search.
 
 ## Pre-requisites
 
