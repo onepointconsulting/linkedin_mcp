@@ -35,6 +35,8 @@ MCP_TRANSPORT=streamable-http
 MCP_TIMEOUT=150
 ```
 
+You can use multiple LinkedIn username and password combinations.
+
 ### Run in dev mode with MCP Inspector
 
 ```
