@@ -9,6 +9,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from linkedin_mcp.config.config import cfg
 from linkedin_mcp.model.linkedin_person import Person
 from linkedin_mcp.model.linkedin_profile import (
+    Interest,
     Profile,
     ProfileSearchResult,
     Skill,
@@ -58,6 +59,7 @@ def _convert_to_consultant(person: Person | None) -> Profile | None:
         experiences=person.experiences,
         educations=person.educations,
         skills=[Skill(name=s) for s in person.skills],
+        interests=[Interest(name=i.name, linkedin_url=i.linkedin_url, type=i.type) for i in person.interests],
     )
 
 
@@ -76,6 +78,7 @@ async def extract_profile(
     force_login: bool = True,
     extract_educations: bool = False,
     extract_skills: bool = False,
+    extract_interests: bool = False,
     headless: bool = True,
     ctx: Context = None,
 ) -> Profile | None:
@@ -105,6 +108,7 @@ async def extract_profile(
         profile,
         extract_educations=extract_educations,
         extract_skills=extract_skills,
+        extract_interests=extract_interests,
     )
 
     if ctx:

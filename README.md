@@ -59,6 +59,20 @@ python ./src/linkedin_mcp/client/client_stdio.py
 uv run ./src/linkedin_mcp/server/server.py
 ```
 
+**Note:** If you're experiencing issues with code changes not being picked up, clear the Python cache first:
+```powershell
+# Windows PowerShell
+.\clear_cache.ps1
+
+# Or manually:
+Get-ChildItem -Path . -Filter __pycache__ -Recurse -Directory | Remove-Item -Recurse -Force
+```
+
+Then restart the server. Alternatively, use Python's `-B` flag to skip bytecode generation:
+```
+uv run python -B ./src/linkedin_mcp/server/server.py
+```
+
 ## Integration with Gemini CLI
 
 This is a modified `.settings.json` of the Gemini CLI with which you can use for connecting and using the MCP:

@@ -1,4 +1,4 @@
-from linkedin_mcp.model.linkedin_profile import Skill, Experience, Education
+from linkedin_mcp.model.linkedin_profile import Interest, Skill, Experience, Education
 
 
 class Person:
@@ -14,7 +14,7 @@ class Person:
         experiences: list[Experience] = None,
         educations: list[Education] = None,
         skills: list[Skill] = None,
-        interests=None,
+        interests: list[Interest] = None,
         accomplishments=None,
         company=None,
         job_title=None,

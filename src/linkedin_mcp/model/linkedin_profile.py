@@ -1,6 +1,7 @@
 import datetime
 
 from typing import Optional
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
@@ -78,6 +79,7 @@ class Profile(BaseModel):
         ..., description="The experiences of this user"
     )
     skills: list[Skill] = Field(..., description="The list of skills")
+    interests: list[Interest] = Field(default=[], description="The list of interests")
     educations: list[Education] = Field(
         default=[], description="The educations of this user"
     )
@@ -87,3 +89,15 @@ class Profile(BaseModel):
     photo_400: str | None = Field(
         default=None, description="The 400x400 photo of the consultant"
     )
+
+
+class InterestType(StrEnum):
+    COMPANIES = "companies"
+    GROUPS = "groups"
+    SCHOOLS = "schools"
+
+
+class Interest(BaseModel):
+    name: str = Field(..., description="The name of the interest")
+    linkedin_url: str = Field(..., description="The linkedin url of the interest")
+    type: InterestType = Field(..., description="The type of the interest")

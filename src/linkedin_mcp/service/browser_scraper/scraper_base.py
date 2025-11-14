@@ -48,6 +48,14 @@ class ScraperBase:
             EC.presence_of_all_elements_located((by, name))
         )
 
+    def __find_child_element_by_class_name__(self, elem: WebElement, class_name: str):
+        try:
+            elem.find_element(By.CLASS_NAME, class_name)
+            return True
+        except:
+            pass
+        return False
+
     def is_signed_in(self):
         try:
             WebDriverWait(self.driver, self.WAIT_FOR_ELEMENT_TIMEOUT).until(

@@ -1,18 +1,19 @@
 from dataclasses import dataclass
 import logging
+import time
 
 from webbrowser import Chrome
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException
 
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 
 from linkedin_mcp.model.linkedin_person import Person
-from linkedin_mcp.model.linkedin_profile import Education, Experience
+from linkedin_mcp.model.linkedin_profile import Education, Experience, Interest, InterestType
 from linkedin_mcp.service.browser_scraper.linkedin_util_functions import (
     convert_linkedin_date,
 )
@@ -35,12 +36,14 @@ class Scraper(ScraperBase):
         linkedin_url: str = None,
         extract_educations: bool = False,
         extract_skills: bool = False,
+        extract_interests: bool = False,
     ):
         super().__init__(driver)
         self.linkedin_url = linkedin_url
         self.person = Person(linkedin_url=linkedin_url)
         self.extract_educations = extract_educations
         self.extract_skills = extract_skills
+        self.extract_interests = extract_interests
 
     def scroll_to_half(self):
         self.driver.execute_script(
@@ -56,6 +59,23 @@ class Scraper(ScraperBase):
         self.driver.execute_script(
             f'elem = document.getElementsByClassName("{class_name}")[0]; elem.scrollTo(0, elem.scrollHeight*{str(page_percent)});'
         )
+
+    def safe_click(self, element: WebElement):
+        """Safely click an element, handling ElementClickInterceptedException by scrolling into view and using JavaScript click as fallback."""
+        try:
+            # Scroll element into view
+            self.driver.execute_script("arguments[0].scrollIntoView({block: 'center', behavior: 'smooth'});", element)
+            time.sleep(0.5)
+            # Wait for element to be clickable
+            WebDriverWait(self.driver, self.WAIT_FOR_ELEMENT_TIMEOUT).until(
+                EC.element_to_be_clickable(element)
+            )
+            # Try regular click first
+            element.click()
+        except ElementClickInterceptedException:
+            # If intercepted, use JavaScript click as fallback
+            logger.warning("Element click intercepted, using JavaScript click as fallback")
+            self.driver.execute_script("arguments[0].click();", element)
 
     def __find_element_by_class_name__(self, class_name):
         try:
@@ -118,6 +138,8 @@ class Scraper(ScraperBase):
             self.get_educations()
         if self.extract_skills:
             self.get_skills()
+        if self.extract_interests:
+            self.get_interests()
 
     def get_name_and_location(self):
         top_panel = self.driver.find_element(By.XPATH, "//*[@class='mt2 relative']")
@@ -291,7 +313,7 @@ class Scraper(ScraperBase):
                         duration = (
                             work_times.split("·")[1].strip()
                             if len(work_times.split("·")) > 1
-                            else None
+                            else ""
                         )
                         from_date = " ".join(times.split(" ")[:2]) if times else ""
                         to_date = " ".join(times.split(" ")[3:]) if times else ""
@@ -316,7 +338,7 @@ class Scraper(ScraperBase):
                         position_title=position_title,
                         from_date=from_date,
                         to_date=to_date,
-                        duration=duration,
+                        duration="" if duration is None else duration,
                         location=location,
                         description=description,
                         institution_name=company,
@@ -429,3 +451,41 @@ class Scraper(ScraperBase):
                 self.person.add_skill(position.find_element(By.XPATH, "*").text)
         except Exception as e:
             logger.error(f"Error getting skills: {e}")
+
+
+    def get_interests(self):
+        interests: list[Interest] = []
+        try:
+            url = f"{self.linkedin_url}/details/interests"
+            logger.info(f"Getting interests from {url}")
+            self.driver.get(url)
+            self.focus()
+            main = self.wait_for_element_to_load(by=By.TAG_NAME, name="main")
+            self.scroll_to_half()
+            self.scroll_to_bottom()
+            self.wait_for_all_elements_to_load(name="pvs-list__container", base=main)
+            tab_buttons = main.find_elements(By.CSS_SELECTOR, ".artdeco-tablist button")
+            logger.info(f"Tab buttons: {tab_buttons}")
+            for tab_button, interest_container in zip(tab_buttons, main.find_elements(By.CSS_SELECTOR, "div.pvs-list__container")):
+                self.safe_click(tab_button)
+                self.wait(1)
+                for position in interest_container.find_elements(By.CSS_SELECTOR, "a[data-field]"):
+                    if self.__find_child_element_by_class_name__(position, "hoverable-link-text"):
+                        position_link_text = position.find_element(By.CLASS_NAME, "hoverable-link-text")
+                        data_field_value = position.get_attribute("data-field")
+                        interest_type = InterestType.COMPANIES
+                        if data_field_value == "active_tab_schools_interests":
+                            interest_type = InterestType.SCHOOLS
+                        elif data_field_value == "active_tab_groups_interests":
+                            interest_type = InterestType.GROUPS
+                        linkedin_url = position.get_attribute("href")
+                        interest_name = position_link_text.find_element(By.XPATH, "*").text
+                        if interest_name is not None and interest_name != "" and linkedin_url is not None and linkedin_url != "":
+                            interests.append(Interest(name=interest_name, linkedin_url=linkedin_url, type=interest_type))
+                        else:
+                            logger.warning(f"Interest name or linkedin url is empty: {interest_name} {linkedin_url}")
+
+            self.person.interests = interests
+        except Exception as e:
+            logger.error(f"Error getting interests: {e}")
+            return []

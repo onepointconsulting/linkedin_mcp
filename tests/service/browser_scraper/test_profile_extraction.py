@@ -17,6 +17,7 @@ def test_extract_profile_full():
             headless=False,
             extract_educations=True,
             extract_skills=True,
+            extract_interests=True,
         )
     )
     assert profile is not None, "The profile cannot be retrieved."
@@ -32,6 +33,9 @@ def test_extract_profile_full():
     assert (
         profile.skills is not None and len(profile.skills) > 0
     ), "The skills cannot be retrieved."
+    assert (
+        profile.interests is not None and len(profile.interests) > 0
+    ), "The interests cannot be retrieved."
     Path("profiles").mkdir(exist_ok=True)
     with open(Path("profiles") / f"{profile.email}.json", "w") as f:
         json.dump(profile.model_dump(), f)
@@ -43,6 +47,10 @@ def test_extract_profile_mkhere():
 
 def test_extract_profile_robertbaldock():
     _basic_tester("robertbaldock")
+
+
+def test_extract_profile_shashinbshah():
+    _basic_tester("shashinbshah")
 
 
 def _basic_tester(profile_id: str):

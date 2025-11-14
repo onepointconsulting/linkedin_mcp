@@ -18,6 +18,7 @@ async def linkedin_profile(
     profile: str,
     extract_educations: bool = False,
     extract_skills: bool = False,
+    extract_interests: bool = False,
     ctx: Context = None,
 ) -> dict:
     """
@@ -27,6 +28,7 @@ async def linkedin_profile(
         profile: The LinkedIn profile URL or username
         extract_educations: If True, extract educations
         extract_skills: If True, extract skills
+        extract_interests: If True, extract the profile interests
 
     Returns:
         The LinkedIn profile as a dictionary
@@ -66,6 +68,7 @@ async def linkedin_profile(
             profile,
             extract_educations=extract_educations,
             extract_skills=extract_skills,
+            extract_interests=extract_interests,
         )
         return profile.model_dump()
     except Exception as e:
