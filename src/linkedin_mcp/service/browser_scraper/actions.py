@@ -41,7 +41,9 @@ def login(driver: webdriver.Chrome, email=None, password=None, cookie=None, time
     password_elem.send_keys(password)
 
     try:
-        remember = driver.find_element(By.CSS_SELECTOR, "label[for='rememberMeOptIn-checkbox']")
+        remember = driver.find_element(
+            By.CSS_SELECTOR, "label[for='rememberMeOptIn-checkbox']"
+        )
         if remember:
             remember.click()
     except Exception as e:

@@ -69,6 +69,7 @@ async def linkedin_profile(
             extract_educations=extract_educations,
             extract_skills=extract_skills,
             extract_interests=extract_interests,
+            force_login=True,
         )
         return profile.model_dump()
     except Exception as e:
@@ -112,11 +113,27 @@ async def profile_search(name: str, ctx: Context = None) -> list[dict] | dict:
             await ctx.report_progress(
                 progress=10, total=100, message="Starting LinkedIn profile search..."
             )
-        results = await search_profiles_by_name(name)
+        results = await search_profiles_by_name(name, headless=True, force_login=True)
         return [result.model_dump() for result in results]
     except Exception as e:
         logger.error(f"Error searching profiles: {e}")
         return {"error": str(e)}
+
+
+@mcp.prompt()
+async def profile_search_by_name(name: str) -> str:
+    """Returns a prompt that you can use to search for a LinkedIn profile by name."""
+    return f"""
+Can you search for a LinkedIn profile by name? The name is {name}. Can you list the names with corresponding titles and linkedin urls?
+    """
+
+
+@mcp.prompt()
+async def profile_experiences_by_profile_id(profile_id: str) -> str:
+    """Returns a prompt that you can use to list the experiences of a LinkedIn profile by profile id."""
+    return f"""
+Can you list the professional experiences of the LinkedIn user with this profile id: {profile_id}
+    """
 
 
 if __name__ == "__main__":

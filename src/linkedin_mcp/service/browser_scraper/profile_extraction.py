@@ -59,7 +59,10 @@ def _convert_to_consultant(person: Person | None) -> Profile | None:
         experiences=person.experiences,
         educations=person.educations,
         skills=[Skill(name=s) for s in person.skills],
-        interests=[Interest(name=i.name, linkedin_url=i.linkedin_url, type=i.type) for i in person.interests],
+        interests=[
+            Interest(name=i.name, linkedin_url=i.linkedin_url, type=i.type)
+            for i in person.interests
+        ],
     )
 
 

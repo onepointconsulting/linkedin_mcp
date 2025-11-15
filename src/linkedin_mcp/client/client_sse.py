@@ -12,9 +12,13 @@ Make sure the server is running with the following command:
 uv run ./src/linkedin_mcp/server/server.py
 """
 
+
 async def main(profile: str):
 
-    async with sse_client(f"http://localhost:{cfg.mcp_port}/sse") as (read_stream, write_stream):
+    async with sse_client(f"http://localhost:{cfg.mcp_port}/sse") as (
+        read_stream,
+        write_stream,
+    ):
         await mcp_profile_search(profile, read_stream, write_stream)
 
 

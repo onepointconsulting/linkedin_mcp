@@ -7,13 +7,21 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException
+from selenium.common.exceptions import (
+    NoSuchElementException,
+    ElementClickInterceptedException,
+)
 
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 
 from linkedin_mcp.model.linkedin_person import Person
-from linkedin_mcp.model.linkedin_profile import Education, Experience, Interest, InterestType
+from linkedin_mcp.model.linkedin_profile import (
+    Education,
+    Experience,
+    Interest,
+    InterestType,
+)
 from linkedin_mcp.service.browser_scraper.linkedin_util_functions import (
     convert_linkedin_date,
 )
@@ -64,7 +72,10 @@ class Scraper(ScraperBase):
         """Safely click an element, handling ElementClickInterceptedException by scrolling into view and using JavaScript click as fallback."""
         try:
             # Scroll element into view
-            self.driver.execute_script("arguments[0].scrollIntoView({block: 'center', behavior: 'smooth'});", element)
+            self.driver.execute_script(
+                "arguments[0].scrollIntoView({block: 'center', behavior: 'smooth'});",
+                element,
+            )
             time.sleep(0.5)
             # Wait for element to be clickable
             WebDriverWait(self.driver, self.WAIT_FOR_ELEMENT_TIMEOUT).until(
@@ -74,7 +85,9 @@ class Scraper(ScraperBase):
             element.click()
         except ElementClickInterceptedException:
             # If intercepted, use JavaScript click as fallback
-            logger.warning("Element click intercepted, using JavaScript click as fallback")
+            logger.warning(
+                "Element click intercepted, using JavaScript click as fallback"
+            )
             self.driver.execute_script("arguments[0].click();", element)
 
     def __find_element_by_class_name__(self, class_name):
@@ -452,7 +465,6 @@ class Scraper(ScraperBase):
         except Exception as e:
             logger.error(f"Error getting skills: {e}")
 
-
     def get_interests(self):
         interests: list[Interest] = []
         try:
@@ -466,12 +478,21 @@ class Scraper(ScraperBase):
             self.wait_for_all_elements_to_load(name="pvs-list__container", base=main)
             tab_buttons = main.find_elements(By.CSS_SELECTOR, ".artdeco-tablist button")
             logger.info(f"Tab buttons: {tab_buttons}")
-            for tab_button, interest_container in zip(tab_buttons, main.find_elements(By.CSS_SELECTOR, "div.pvs-list__container")):
+            for tab_button, interest_container in zip(
+                tab_buttons,
+                main.find_elements(By.CSS_SELECTOR, "div.pvs-list__container"),
+            ):
                 self.safe_click(tab_button)
                 self.wait(1)
-                for position in interest_container.find_elements(By.CSS_SELECTOR, "a[data-field]"):
-                    if self.__find_child_element_by_class_name__(position, "hoverable-link-text"):
-                        position_link_text = position.find_element(By.CLASS_NAME, "hoverable-link-text")
+                for position in interest_container.find_elements(
+                    By.CSS_SELECTOR, "a[data-field]"
+                ):
+                    if self.__find_child_element_by_class_name__(
+                        position, "hoverable-link-text"
+                    ):
+                        position_link_text = position.find_element(
+                            By.CLASS_NAME, "hoverable-link-text"
+                        )
                         data_field_value = position.get_attribute("data-field")
                         interest_type = InterestType.COMPANIES
                         if data_field_value == "active_tab_schools_interests":
@@ -479,11 +500,26 @@ class Scraper(ScraperBase):
                         elif data_field_value == "active_tab_groups_interests":
                             interest_type = InterestType.GROUPS
                         linkedin_url = position.get_attribute("href")
-                        interest_name = position_link_text.find_element(By.XPATH, "*").text
-                        if interest_name is not None and interest_name != "" and linkedin_url is not None and linkedin_url != "":
-                            interests.append(Interest(name=interest_name, linkedin_url=linkedin_url, type=interest_type))
+                        interest_name = position_link_text.find_element(
+                            By.XPATH, "*"
+                        ).text
+                        if (
+                            interest_name is not None
+                            and interest_name != ""
+                            and linkedin_url is not None
+                            and linkedin_url != ""
+                        ):
+                            interests.append(
+                                Interest(
+                                    name=interest_name,
+                                    linkedin_url=linkedin_url,
+                                    type=interest_type,
+                                )
+                            )
                         else:
-                            logger.warning(f"Interest name or linkedin url is empty: {interest_name} {linkedin_url}")
+                            logger.warning(
+                                f"Interest name or linkedin url is empty: {interest_name} {linkedin_url}"
+                            )
 
             self.person.interests = interests
         except Exception as e:
