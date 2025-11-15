@@ -138,7 +138,8 @@ Can you list the professional experiences of the LinkedIn user with this profile
 
 @mcp.resource("resource://british_english")
 def british_english_resource() -> str:
-    return "You are a HR analyst who speaks British English."
+    """Used to define a specific language and behaviour for the MCP."""
+    return "You are a HR analyst who speaks in polite British English."
 
 
 if __name__ == "__main__":
